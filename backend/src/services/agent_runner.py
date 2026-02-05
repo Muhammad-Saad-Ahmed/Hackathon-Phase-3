@@ -613,7 +613,7 @@ class AgentRunner:
 
         elif intent_result.intent_type == "list":
             result_data = execution_results[0].get("data", [])
-            filter_name = tool_result.parameters.get("status", "all")
+            filter_name = tool_result.parameters.get("status") or "all"
             return self.response_formatter.format_task_listed(result_data, filter_name)
 
         elif intent_result.intent_type == "delete":

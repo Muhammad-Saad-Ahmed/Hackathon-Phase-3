@@ -11,7 +11,7 @@ class ResponseTemplate(BaseModel):
     """Template for different response types."""
     task_created: str = "I've added '{title}' to your tasks. {encouragement}"
     task_completed: str = "{celebration} I've marked '{title}' as completed ✓"
-    task_deleted: str = "I've deleted task {position}: '{title}'"
+    task_deleted: str = "✓ Deleted: '{title}' (Task #{position})"
     task_updated: str = "I've updated task {position} to '{new_title}'"
     task_listed_empty: str = "You don't have any tasks yet. Would you like to create one?"
     task_listed: str = "Here are your {filter_name} tasks:\n{task_list}"
