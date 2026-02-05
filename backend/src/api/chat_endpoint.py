@@ -28,7 +28,7 @@ class ChatResponseModel(BaseModel):
     reasoning_trace: dict = {}
 
 
-@router.post("/chat", response_model=ChatResponseModel)
+@router.post("/v1/chat", response_model=ChatResponseModel)
 async def chat(request: ChatRequest, current_user: User = Depends(get_current_user)):
     """
     Chat endpoint that accepts user messages and returns responses from the LLM,
