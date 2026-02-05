@@ -20,11 +20,11 @@ WORKDIR /app
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir uv
 
-# Copy project files (paths relative to repo root — HF Spaces build context)
-COPY backend/pyproject.toml backend/uv.lock ./
+# Copy project files
+COPY pyproject.toml uv.lock ./
 
-# Copy source code (before install — setuptools ko src/ chahiye package banane ke liye)
-COPY backend/src ./src
+# Copy source code (before install — setuptools needs src/ to build package)
+COPY src ./src
 
 # Install dependencies + project using uv
 RUN uv pip install --system --compile-bytecode .
