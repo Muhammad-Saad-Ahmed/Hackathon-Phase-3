@@ -330,7 +330,7 @@ class AgentRunner:
         # CREATE intent patterns
         create_patterns = [
             r"\b(add|create|make|remind me to|need to|have to|want to|should|must)\b",
-            r"\b(task|todo|to-do|item|thing|action)\b",
+            r"\b(todo|to-do|item|thing|action)\b",
             r"\b(grocer|shop|buy|purchase)\b",
             r"\b(call|contact|email|message)\b",
             r"\b(schedule|book|arrange|plan)\b"
@@ -342,7 +342,7 @@ class AgentRunner:
 
         # LIST intent patterns
         list_patterns = [
-            r"\b(show|list|display|what|do i have|need to do|todo|tasks|todos|items)\b",
+            r"\b(show|list|display|what|do i have|need to do|todo|task|tasks|todos|items)\b",
             r"\b(see|view|check|look at|my)\b",
             r"\b(pending|completed|done|finished|all)\b"
         ]
