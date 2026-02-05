@@ -9,13 +9,17 @@ def setup_logging():
     """
     Configure structlog with appropriate processors and formatters.
     """
+    # Ensure logs directory exists
+    log_dir = Path(__file__).parent.parent / "logs"
+    log_dir.mkdir(exist_ok=True)
+
     # Configure standard logging first
     logging.basicConfig(
         level=getattr(logging, settings.log_level.upper()),
         format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
         handlers=[
             logging.StreamHandler(sys.stdout),
-            logging.FileHandler(Path(__file__).parent.parent / "logs" / "app.log", mode="a"),
+            logging.FileHandler(log_dir / "app.log", mode="a"),
         ]
     )
 

@@ -23,13 +23,10 @@ def create_app():
         version="0.1.0"
     )
 
-    # Configure CORS to allow frontend access
+    # Configure CORS — origins from env var CORS_ORIGINS (comma-separated), default "*"
     app_instance.add_middleware(
         CORSMiddleware,
-        allow_origins=[
-            "http://localhost:3000",
-            "http://localhost:3003",  # Alternative dev port
-        ],
+        allow_origins=[o.strip() for o in settings.cors_origins.split(",")],
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
@@ -49,6 +46,11 @@ def create_app():
     # Include routers
     app_instance.include_router(chat_router, prefix="/api")
     app_instance.include_router(auth_router, prefix="/api")
+
+    # Root endpoint
+    @app_instance.get("/")
+    def root():
+        return {"status": "healthy", "service": "chat-agent-connector", "docs": "/docs"}
 
     # Health check endpoint
     @app_instance.get("/health")

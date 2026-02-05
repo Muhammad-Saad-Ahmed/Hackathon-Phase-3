@@ -13,7 +13,7 @@ RUN npm ci --only=production
 COPY . .
 
 # Build argument for API URL
-ARG NEXT_PUBLIC_API_URL=http://localhost:8000/api
+ARG NEXT_PUBLIC_API_URL=https://MSK9218-HackPjase3.hf.space/api
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 
 # Build the application

@@ -37,6 +37,9 @@ class Settings(BaseSettings):
     server_port: int = 8000
     request_timeout_seconds: float = 30.0
 
+    # CORS settings (comma-separated list of allowed origins, "*" = allow all)
+    cors_origins: str = "*"
+
     # Logging settings
     log_level: str = "INFO"
 
