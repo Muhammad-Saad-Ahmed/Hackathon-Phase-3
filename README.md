@@ -1,3 +1,13 @@
+---
+title: Todo AI Chatbot
+emoji: 🤖
+colorFrom: blue
+colorTo: purple
+sdk: docker
+dockerfile: backend/Dockerfile
+pinned: false
+---
+
 # Todo AI Chatbot (Reusable Intelligence + MCP)
 
 A stateless chat backend that connects reusable agents to MCP tools using an external LLM provider. The system follows a conversation flow: load conversation, store user message, run agent, execute MCP tools, store assistant response, and return result.
