@@ -238,8 +238,14 @@ class ApiClient {
 
     try {
       const errorData = await response.json();
-      message = errorData.message || errorData.error || message;
-      details = errorData.details;
+      // Backend returns errors in detail object: { detail: { error, message } }
+      if (errorData.detail) {
+        message = errorData.detail.message || errorData.detail.error || message;
+        details = errorData.detail;
+      } else {
+        message = errorData.message || errorData.error || message;
+        details = errorData.details;
+      }
     } catch {
       // Failed to parse error response
       message = response.statusText || message;
