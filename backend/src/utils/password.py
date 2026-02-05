@@ -2,11 +2,7 @@
 Password hashing and validation utilities using bcrypt.
 """
 import re
-from passlib.context import CryptContext
-
-
-# Bcrypt context with 12 rounds (strong, future-proof)
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto", bcrypt__rounds=12)
+import bcrypt
 
 
 def hash_password(password: str) -> str:
@@ -19,7 +15,14 @@ def hash_password(password: str) -> str:
     Returns:
         Bcrypt hashed password string (60 characters, format: $2b$12$...)
     """
-    return pwd_context.hash(password)
+    # Bcrypt requires bytes input
+    password_bytes = password.encode('utf-8')
+    # Generate salt with 12 rounds
+    salt = bcrypt.gensalt(rounds=12)
+    # Hash the password
+    hashed = bcrypt.hashpw(password_bytes, salt)
+    # Return as string
+    return hashed.decode('utf-8')
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
@@ -33,7 +36,11 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     Returns:
         True if password matches hash, False otherwise
     """
-    return pwd_context.verify(plain_password, hashed_password)
+    # Bcrypt requires bytes input
+    password_bytes = plain_password.encode('utf-8')
+    hashed_bytes = hashed_password.encode('utf-8')
+    # Verify the password
+    return bcrypt.checkpw(password_bytes, hashed_bytes)
 
 
 def validate_password_strength(password: str) -> tuple[bool, str]:
