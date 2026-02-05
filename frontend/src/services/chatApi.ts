@@ -38,7 +38,7 @@ export interface ChatResponse {
 export const sendMessage = async (
   message: ChatMessage
 ): Promise<ChatResponse> => {
-  try:
+  try {
     // Use apiClient which automatically includes auth token
     // User ID is extracted from JWT token by backend
     const response = await apiClient.post<ChatResponse>(
