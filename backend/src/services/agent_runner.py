@@ -13,6 +13,7 @@ from ..services.conversation_service import ConversationService
 from ..services.response_formatter import get_response_formatter
 from ..services.error_humanizer import get_error_humanizer
 from ..services.task_reference_resolver import get_task_reference_resolver
+from ..services.confirmation_handler import ConfirmationHandler
 from ..core.logging import logger
 
 
@@ -44,6 +45,7 @@ class AgentRunner:
         self.response_formatter = get_response_formatter()
         self.error_humanizer = get_error_humanizer()
         self.task_reference_resolver = get_task_reference_resolver()
+        self.confirmation_handler = ConfirmationHandler()
 
         # Confidence thresholds by intent type
         self.confidence_thresholds = {
@@ -104,6 +106,79 @@ class AgentRunner:
                 conversation_id=conversation_id
             )
 
+            # 2.5. Check for pending confirmation (delete confirmation flow)
+            if self.confirmation_handler.has_pending_confirmation(conversation_metadata):
+                confirmation_response = self.confirmation_handler.is_confirmation_response(message)
+
+                if confirmation_response is not None:
+                    pending = self.confirmation_handler.get_pending_confirmation(conversation_metadata)
+
+                    if confirmation_response:  # User said yes
+                        # Execute the pending action
+                        try:
+                            tool_result = await self.mcp_executor.execute_tool(
+                                tool_name=pending["tool_name"],
+                                arguments=pending["parameters"]
+                            )
+
+                            response_message = self.confirmation_handler.get_confirmation_accepted_message(
+                                pending["action"],
+                                pending["task_title"]
+                            )
+
+                            # Clear pending confirmation
+                            conversation_metadata = self.confirmation_handler.clear_pending_confirmation(conversation_metadata)
+                            await self.conversation_service.update_conversation_metadata(conversation_id, conversation_metadata)
+
+                            # Store response
+                            await self.conversation_service.store_assistant_message(
+                                conversation_id=conversation_id,
+                                message=response_message
+                            )
+
+                            return {
+                                "conversation_id": conversation_id,
+                                "response": response_message,
+                                "tool_calls": [tool_result] if tool_result else [],
+                                "reasoning_trace": {"action": "confirmed_delete"}
+                            }
+
+                        except Exception as e:
+                            error_message = f"Failed to complete {pending['action']}: {str(e)}"
+                            conversation_metadata = self.confirmation_handler.clear_pending_confirmation(conversation_metadata)
+                            await self.conversation_service.update_conversation_metadata(conversation_id, conversation_metadata)
+
+                            await self.conversation_service.store_assistant_message(
+                                conversation_id=conversation_id,
+                                message=error_message
+                            )
+
+                            return {
+                                "conversation_id": conversation_id,
+                                "response": error_message,
+                                "tool_calls": [],
+                                "reasoning_trace": {"action": "confirmation_error", "error": str(e)}
+                            }
+
+                    else:  # User said no
+                        response_message = self.confirmation_handler.get_confirmation_declined_message(pending["action"])
+
+                        # Clear pending confirmation
+                        conversation_metadata = self.confirmation_handler.clear_pending_confirmation(conversation_metadata)
+                        await self.conversation_service.update_conversation_metadata(conversation_id, conversation_metadata)
+
+                        await self.conversation_service.store_assistant_message(
+                            conversation_id=conversation_id,
+                            message=response_message
+                        )
+
+                        return {
+                            "conversation_id": conversation_id,
+                            "response": response_message,
+                            "tool_calls": [],
+                            "reasoning_trace": {"action": "cancelled_delete"}
+                        }
+
             # Prepare messages for LLM
             llm_messages = []
 
@@ -153,11 +228,52 @@ class AgentRunner:
             # 5. Execute MCP tools if identified
             tool_results = []
             if tool_selection_result and tool_selection_result.tool_name:
-                # Check if confirmation is required
+                # Check if confirmation is required (e.g., delete operations)
                 if tool_selection_result.requires_confirmation:
-                    # For now, we'll proceed directly - in a real implementation,
-                    # we'd check if user confirmed the action
-                    pass
+                    # Get task title for confirmation message
+                    task_id = tool_selection_result.parameters.get("task_id")
+                    task_title = "this task"
+
+                    # Try to get task title from task_details in metadata
+                    if task_id and "task_details" in conversation_metadata:
+                        for task in conversation_metadata["task_details"]:
+                            if task["id"] == task_id:
+                                task_title = task["title"]
+                                break
+
+                    # Ask for confirmation and store pending action
+                    confirmation_message = self.confirmation_handler.get_confirmation_prompt(
+                        intent_result.intent_type,
+                        task_title
+                    )
+
+                    # Store pending confirmation in metadata
+                    conversation_metadata = self.confirmation_handler.set_pending_confirmation(
+                        conversation_metadata=conversation_metadata,
+                        action=intent_result.intent_type,
+                        task_id=task_id,
+                        task_title=task_title,
+                        tool_name=tool_selection_result.tool_name,
+                        parameters=tool_selection_result.parameters
+                    )
+
+                    await self.conversation_service.update_conversation_metadata(conversation_id, conversation_metadata)
+                    await self.conversation_service.store_assistant_message(
+                        conversation_id=conversation_id,
+                        message=confirmation_message
+                    )
+
+                    logger.info("Confirmation required", action=intent_result.intent_type, task_title=task_title)
+
+                    return {
+                        "conversation_id": conversation_id,
+                        "response": confirmation_message,
+                        "tool_calls": [],
+                        "reasoning_trace": {
+                            "intent": intent_result.intent_type,
+                            "action": "awaiting_confirmation"
+                        }
+                    }
 
                 logger.info("Executing tool", tool_name=tool_selection_result.tool_name, parameters=tool_selection_result.parameters)
 
