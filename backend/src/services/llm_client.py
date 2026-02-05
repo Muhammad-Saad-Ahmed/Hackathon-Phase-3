@@ -81,7 +81,7 @@ class OpenAIAgentsClient(BaseLLMClient):
 
             # Extract the response content
             choice = response.choices[0]
-            content = choice.message.content
+            content = choice.message.content or ""  # Handle None content
 
             # Extract tool calls if present
             tool_calls = []
@@ -102,6 +102,10 @@ class OpenAIAgentsClient(BaseLLMClient):
                         "type": tool_call.type,
                         "result": result
                     })
+
+            # If content is empty but we have tool calls, provide a helpful message
+            if not content and tool_calls:
+                content = "I've executed the requested action for you."
 
             return {
                 "response": content,
