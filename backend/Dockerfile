@@ -1,9 +1,10 @@
 FROM python:3.11-slim
 
-# Set environment variables
+# Set environment variables for Hugging Face Spaces
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    PYTHONPATH=/app/src
+    PYTHONPATH=/app \
+    PORT=7860
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
@@ -15,26 +16,30 @@ RUN apt-get update && apt-get install -y \
 # Set work directory
 WORKDIR /app
 
-# Install Python dependencies first (for better caching)
-COPY pyproject.toml uv.lock ./
+# Install uv for dependency management
 RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir uv && \
-    uv pip install --system --compile-bytecode .
+    pip install --no-cache-dir uv
 
-# Copy source code
+# Copy project files
+COPY pyproject.toml uv.lock ./
+
+# Copy source code (before install — setuptools ko src/ chahiye package banane ke liye)
 COPY src ./src
+
+# Install dependencies + project using uv
+RUN uv pip install --system --compile-bytecode .
 
 # Create non-root user
 RUN adduser --disabled-password --gecos '' appuser && \
     chown -R appuser:appuser /app
 USER appuser
 
-# Expose port
-EXPOSE 8000
+# Expose port required by Hugging Face Spaces
+EXPOSE 7860
 
-# Health check
+# Health check adapted for Hugging Face Spaces
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD curl -f http://localhost:8000/health || exit 1
+    CMD curl -f http://localhost:7860/health || exit 1
 
-# Run the application
-CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload=false"]
+# Run the application with Hugging Face Spaces port
+CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "7860", "--reload=false"]

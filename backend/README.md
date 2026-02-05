@@ -1,3 +1,14 @@
+---
+title: Reusable AI Agents and Skills
+emoji: 🤖
+colorFrom: blue
+colorTo: purple
+sdk: docker
+python_version: "3.11"
+app_file: app.py
+pinned: false
+---
+
 # Reusable AI Agents and Skills
 
 A framework for building application-agnostic AI agents that work across multiple domains (Todo, CRM, Notes, Inventory, etc.) without modification. Agents discover and invoke tools dynamically via the Model Context Protocol (MCP).
@@ -360,5 +371,46 @@ See [CONTRIBUTING.md](CONTRIBUTING.md)
 - **Documentation**: [Full documentation](../specs/001-reusable-agents/)
 
 ---
+
+## 🚀 Deploy to Hugging Face Spaces
+
+This backend can be deployed to Hugging Face Spaces using Docker.
+
+### Deployment Steps
+
+1. **Prepare Your Repository**
+   - Create a new repository on Hugging Face Hub
+   - Add the files from the backend directory to your repository
+
+2. **Configure Your Space**
+   - Go to [huggingface.co/spaces](https://huggingface.co/spaces)
+   - Click "Create new Space"
+   - Select **Container** as the Space SDK
+   - Choose your hardware specifications
+   - Link your repository
+
+3. **Environment Variables**
+   Add these secrets in your Space settings:
+   - `OPENAI_API_KEY`: Your OpenAI API key
+   - `DATABASE_URL`: PostgreSQL database URL (consider using an external service)
+   - `JWT_SECRET_KEY`: Secret key for JWT tokens
+   - Any other environment variables required by your application
+
+4. **Application Port**
+   - The application is configured to run on port 7860, which is the standard for Hugging Face Spaces
+   - The Dockerfile automatically sets the PORT environment variable
+
+### API Endpoints
+
+Once deployed, your API will be available at:
+- Health check: `https://YOUR_SPACE_NAME.hf.space/health`
+- Chat endpoint: `https://YOUR_SPACE_NAME.hf.space/api/{user_id}/chat`
+- Authentication: `https://YOUR_SPACE_NAME.hf.space/api/auth/login`
+
+### Notes
+
+- Make sure your database connection is configured for external access if you're using persistent storage
+- Hugging Face Spaces have resource limitations; consider this when choosing your hardware
+- For production deployments, consider using a managed database service
 
 **Built with ❤️ following Spec-Driven Development principles**
