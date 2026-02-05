@@ -42,4 +42,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
     CMD curl -f http://localhost:7860/health || exit 1
 
 # Run the application with Hugging Face Spaces port
-CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "7860", "--reload=false"]
+CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "7860"]
