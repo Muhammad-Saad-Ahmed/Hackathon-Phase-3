@@ -31,23 +31,6 @@ export const ChatContainer: React.FC = () => {
   const [conversationId, setConversationIdState] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // Get user_id from auth session or sessionStorage
-  const getUserId = () => {
-    if (session?.user_id) {
-      return session.user_id;
-    }
-    // Fallback to sessionStorage
-    if (typeof window !== 'undefined') {
-      const storedUserId = sessionStorage.getItem('user_id');
-      if (storedUserId) {
-        return storedUserId;
-      }
-    }
-    return 'demo-user';
-  };
-
-  const USER_ID = getUserId();
-
   // Load conversation ID on mount
   useEffect(() => {
     const storedId = getConversationId();
@@ -88,8 +71,8 @@ export const ChatContainer: React.FC = () => {
       setIsLoading(true);
 
       try {
-        // Send to API
-        const response = await sendMessage(USER_ID, {
+        // Send to API (user ID extracted from JWT token by backend)
+        const response = await sendMessage({
           message: trimmedMessage,
           conversation_id: conversationId || undefined,
         });

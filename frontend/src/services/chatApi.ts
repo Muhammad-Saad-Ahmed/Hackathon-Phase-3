@@ -31,18 +31,18 @@ export interface ChatResponse {
 
 /**
  * Send a message to the chat API
- * @param userId - Unique identifier for the user
  * @param message - The chat message object containing message text and optional conversation_id
  * @returns Promise resolving to the chat response
+ * @note Requires authentication - user ID is extracted from JWT token
  */
 export const sendMessage = async (
-  userId: string,
   message: ChatMessage
 ): Promise<ChatResponse> => {
-  try {
+  try:
     // Use apiClient which automatically includes auth token
+    // User ID is extracted from JWT token by backend
     const response = await apiClient.post<ChatResponse>(
-      `/${userId}/chat`,
+      '/v1/chat',
       message
     );
     return response;

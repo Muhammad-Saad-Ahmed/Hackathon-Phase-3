@@ -1,4 +1,5 @@
 from pydantic_settings import BaseSettings
+from pydantic import model_validator
 from typing import Optional
 
 
@@ -42,6 +43,22 @@ class Settings(BaseSettings):
 
     # Logging settings
     log_level: str = "INFO"
+
+    # Authentication settings
+    better_auth_secret: str = "dev-secret-key-minimum-32-characters-long-for-development"
+    jwt_algorithm: str = "HS256"
+    jwt_expiry_days: int = 7
+
+    @model_validator(mode="after")
+    def validate_auth_secret(self) -> "Settings":
+        """Validate that BETTER_AUTH_SECRET is at least 32 characters."""
+        if len(self.better_auth_secret) < 32:
+            raise ValueError(
+                "BETTER_AUTH_SECRET must be at least 32 characters long. "
+                f"Current length: {len(self.better_auth_secret)}. "
+                "Generate a secure secret with: openssl rand -hex 32"
+            )
+        return self
 
     model_config = {
         "env_file": ".env",

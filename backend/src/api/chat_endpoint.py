@@ -9,6 +9,8 @@ import uuid
 from .responses import ChatResponse
 from ..services.agent_runner import AgentRunner
 from ..core.logging import logger
+from ..middleware.auth_middleware import get_current_user
+from ..models.user import User
 
 
 router = APIRouter()
@@ -26,27 +28,19 @@ class ChatResponseModel(BaseModel):
     reasoning_trace: dict = {}
 
 
-@router.post("/{user_id}/chat", response_model=ChatResponseModel)
-async def chat(user_id: str, request: ChatRequest):
+@router.post("/chat", response_model=ChatResponseModel)
+async def chat(request: ChatRequest, current_user: User = Depends(get_current_user)):
     """
     Chat endpoint that accepts user messages and returns responses from the LLM,
     potentially including tool calls to MCP tools.
+
+    Requires authentication via JWT token in Authorization header.
+    User ID is extracted from the validated JWT token.
     """
     try:
-        # Validate user_id format (basic validation)
-        if not user_id or len(user_id) > 100:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail={
-                    "error": "Validation failed",
-                    "code": "VALIDATION_ERROR",
-                    "details": {
-                        "field": "user_id",
-                        "message": "user_id must be between 1 and 100 characters"
-                    }
-                }
-            )
-        
+        # Extract user_id from authenticated user
+        user_id = current_user.id
+
         # Validate message
         if not request.message or len(request.message) < 1 or len(request.message) > 10000:
             raise HTTPException(
