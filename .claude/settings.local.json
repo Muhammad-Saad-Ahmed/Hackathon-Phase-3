@@ -75,7 +75,11 @@
       "Bash(git commit -m \"feat: Initial commit with complete project structure\n\n- Add backend with API endpoints, models, and services\n- Add frontend with authentication and chat UI\n- Add Docker configurations for development and production\n- Add MCP tools for task management\n- Add project specifications and documentation\n- Configure gitignore for proper file exclusion\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\")",
       "Bash(git push -u origin 004-stateless-chat-api)",
       "Bash(dir /s)",
-      "Bash(Get-ChildItem -Recurse)"
+      "Bash(Get-ChildItem -Recurse)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git branch:*)",
+      "Bash(git push:*)"
     ]
   }
 }
